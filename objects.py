@@ -1,5 +1,7 @@
+from units import Energy
 from formula import gravityForce
 import numpy as np
+import math
 from units import Force
 from units import Mass
 from units import Meter, Velocity, Acceleration, Second
@@ -15,6 +17,8 @@ class Objects:
         self.a = {"x": Acceleration(0), "y": Acceleration(0)}
         self.v = {"x": Velocity(0), "y": Velocity(0)}
         self.f = {"x": Force(0), "y": Force(0)}
+        self.ke = 0
+
 
     def bounce(self, width: int, height: int):
         from units import PIXELS_PER_METER
@@ -35,11 +39,12 @@ class Objects:
             
 
     def Update(self):
+        self.ke = 0.5 * self.mass.nilai * self.speed() ** 2
         for i in self.f:
             self.f[i] = self.a[i] * self.mass
         for i in self.coor:
-            self.v[i] += self.a[i] * self.dt   # kecepatan dulu
-            self.coor[i] += self.v[i] * self.dt  # baru posisi
+            self.v[i] += self.a[i] * self.dt  
+            self.coor[i] += self.v[i] * self.dt  
         
 
     def NewVelocity(self, axis: str, v: Velocity):
@@ -58,6 +63,9 @@ class Objects:
 
         for axis in self.f:
             self.NewForce(axis, forces[axis])
+
+    def speed(self) -> float:
+        return math.hypot(self.v["x"].nilai, self.v["y"].nilai)
 
             
     

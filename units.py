@@ -1,4 +1,4 @@
-PIXELS_PER_METER = 10**-6.2
+PIXELS_PER_METER = 10**-6
 
 
 class Unit:
@@ -50,3 +50,9 @@ class Force(Unit):
         super().__init__(nilai)
 
     def __str__(self): return f"{self.nilai} N"
+
+class Energy(Unit):
+    def __init__(self, nilai):
+        super().__init__(nilai)
+    def __str__(self): return f"{self.nilai} J"
+    

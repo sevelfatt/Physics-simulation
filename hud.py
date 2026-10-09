@@ -68,9 +68,9 @@ class HUD:
         hud.draw()
     """
 
-    W   = 230
+    W   = 300
     PAD = 6
-    ROW = 17   # tinggi per baris
+    ROW = 20   # tinggi per baris
     HDR = 20   # tinggi header (area drag)
 
     BG      = (15, 18, 30, 200)
@@ -86,13 +86,17 @@ class HUD:
         ("vel", "m/s",  lambda o: o.v["x"].nilai,    lambda o: o.v["y"].nilai),
         ("acc", "m/s²", lambda o: o.a["x"].nilai,    lambda o: o.a["y"].nilai),
         ("F",   "N",    lambda o: o.f["x"].nilai,     lambda o: o.f["y"].nilai),
+
     ]
 
     def _speed(self, o):
-        return math.hypot(o.v["x"].nilai, o.v["y"].nilai)
+        return o.speed()
 
     def _accel_mag(self, o):
         return math.hypot(o.a["x"].nilai, o.a["y"].nilai)
+
+    def _kinetic_energy(self, o):
+        return o.ke
 
     def __init__(self, screen: pygame.Surface, obj,
                  label: str = "Object", x: int = 10, y: int = 10,
@@ -105,15 +109,14 @@ class HUD:
         self._drag  = False
         self._ox    = 0
         self._oy    = 0
-        self._dt = dt            # detik per frame (simulasi)
-        self._time_scale = time_scale  # skala waktu (TIME_SCALE)
-        self._sim_time = 0.0     # total waktu simulasi (detik)
-        self._frame_count = 0
+        self._time_scale = time_scale  # skala waktu: detik simulasi per detik real
+        self._sim_time = 0.0
+        self._last_real_time = pygame.time.get_ticks() / 1000.0
 
     # ── tinggi total panel ──────────────────────────────────────────────────
     @property
     def _height(self):
-        return self.HDR + self.PAD + (len(self.ROWS) + 3) * self.ROW + self.PAD
+        return self.HDR + self.PAD + (len(self.ROWS) + 10) * self.ROW + self.PAD
 
     def _header_rect(self) -> pygame.Rect:
         return pygame.Rect(self.x, self.y, self.W, self.HDR)
@@ -136,6 +139,12 @@ class HUD:
         font_s, font_b = _get_fonts()
         o = self.obj
         h = self._height
+
+        # update simulation time based on real elapsed time
+        now = pygame.time.get_ticks() / 1000.0
+        real_dt = now - self._last_real_time
+        self._last_real_time = now
+        self._sim_time += real_dt * self._time_scale
 
         # surface panel
         surf = pygame.Surface((self.W, h), pygame.SRCALPHA)
@@ -170,6 +179,21 @@ class HUD:
         acc_mag = self._accel_mag(o)
         l = font_s.render("acc", True, self.LBL_CLR)
         v = font_s.render(f"  {fmt(acc_mag)} m/s²", True, self.VAL_CLR)
+        surf.blit(l, (self.PAD, oy))
+        surf.blit(v, (self.PAD + l.get_width(), oy))
+        oy += self.ROW
+
+        # kinetic energy
+        ke = self._kinetic_energy(o)
+        l = font_s.render("KE  ", True, self.LBL_CLR)
+        v = font_s.render(f"  {fmt(ke)} J", True, self.VAL_CLR)
+        surf.blit(l, (self.PAD, oy))
+        surf.blit(v, (self.PAD + l.get_width(), oy))
+        oy += self.ROW
+
+        # simulation time
+        l = font_s.render("time", True, self.LBL_CLR)
+        v = font_s.render(f"  {fmt_time(self._sim_time)}", True, self.VAL_CLR)
         surf.blit(l, (self.PAD, oy))
         surf.blit(v, (self.PAD + l.get_width(), oy))
         oy += self.ROW
