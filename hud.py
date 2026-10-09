@@ -184,9 +184,8 @@ class HUD:
         oy += self.ROW
 
         # kinetic energy
-        ke = self._kinetic_energy(o)
         l = font_s.render("KE  ", True, self.LBL_CLR)
-        v = font_s.render(f"  {fmt(ke)} J", True, self.VAL_CLR)
+        v = font_s.render(f"  {fmt(o.ke)} J", True, self.VAL_CLR)
         surf.blit(l, (self.PAD, oy))
         surf.blit(v, (self.PAD + l.get_width(), oy))
         oy += self.ROW
