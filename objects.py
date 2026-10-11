@@ -1,3 +1,4 @@
+from ast import Tuple
 from units import Energy
 from formula import gravityForce
 import numpy as np
@@ -8,66 +9,83 @@ from units import Meter, Velocity, Acceleration, Second
 
 
 class Objects:
-    def __init__(self, coor: dict, radius: Meter, mass: Mass, dt: Second):
+    def __init__(self, name: str, coor: dict, radius: Meter, mass: Mass, color: Tuple=(0,0,0)):
+        self.color=color
         self.coor = coor
         self.radius = radius
         self.mass = mass
-        self.dt = dt
         # Instance variable — setiap objek punya state sendiri
-        self.a = {"x": Acceleration(0), "y": Acceleration(0)}
-        self.v = {"x": Velocity(0), "y": Velocity(0)}
-        self.f = {"x": Force(0), "y": Force(0)}
+        self.a = dict(x=Acceleration(0), y=Acceleration(0))
+        self.v = dict(x=Velocity(0), y=Velocity(0))
+        self.f = dict(force=dict(x=Force(0), y=Force(0)))
         self.ke = 0
+        self.name = name
 
 
-    def bounce(self, width: int, height: int):
-        from units import PIXELS_PER_METER
+    def bounce(self, width: int, height: int, pixel_per_meter):
+        width /= 2
+        height /= 2
 
-        if (self.coor["x"] - self.radius).to_px() < 0 and self.v["x"].nilai < 0:
-            self.coor["x"] = Meter(self.radius.nilai)           # snap ke kiri
+        if (self.coor["x"] - self.radius).to_px(pixel_per_meter) < -width and self.v["x"].nilai < 0:
+            self.coor["x"] = Meter(self.radius.nilai-(width/pixel_per_meter))           # snap ke kiri
             self.v["x"] = -self.v["x"]
-        elif (self.coor["x"] + self.radius).to_px() > width and self.v["x"].nilai > 0:
-            self.coor["x"] = Meter(width / PIXELS_PER_METER - self.radius.nilai)  # snap ke kanan
+        elif (self.coor["x"] + self.radius).to_px(pixel_per_meter) > width and self.v["x"].nilai > 0:
+            self.coor["x"] = Meter(width / pixel_per_meter - self.radius.nilai)  # snap ke kanan
             self.v["x"] = -self.v["x"]
 
-        if (self.coor["y"] - self.radius).to_px() < 0 and self.v["y"].nilai < 0:
-            self.coor["y"] = Meter(self.radius.nilai)           # snap ke lantai
+        if (self.coor["y"] - self.radius).to_px(pixel_per_meter) < -height and self.v["y"].nilai < 0:
+            self.coor["y"] = Meter(self.radius.nilai-(height/pixel_per_meter))           # snap ke lantai
             self.v["y"] = -self.v["y"]
-        elif (self.coor["y"] + self.radius).to_px() > height and self.v["y"].nilai > 0:
-            self.coor["y"] = Meter(height / PIXELS_PER_METER - self.radius.nilai)  # snap ke langit-langit
+        elif (self.coor["y"] + self.radius).to_px(pixel_per_meter) > height and self.v["y"].nilai > 0:
+            self.coor["y"] = Meter(height / pixel_per_meter - self.radius.nilai)  # snap ke langit-langit
             self.v["y"] = -self.v["y"]
             
 
-    def Update(self):
+    def Update(self, dt):
         self.ke = 0.5 * self.mass.nilai * self.speed() ** 2
-        for i in self.f:
-            self.f[i] = self.a[i] * self.mass
-        for i in self.coor:
-            self.v[i] += self.a[i] * self.dt  
-            self.coor[i] += self.v[i] * self.dt  
+
+        net_forces=self.get_net_force()
+
+        for axis in self.coor:
+            self.a[axis]=Acceleration(net_forces[axis].nilai/self.mass.nilai)
+            self.v[axis] += self.a[axis] * dt
+            self.coor[axis] += self.v[axis] * dt  
         
 
-    def NewVelocity(self, axis: str, v: Velocity):
+    def SetVelocity(self, axis: str, v: Velocity):
         self.v[axis] = v
 
-    def NewAcc(self, axis: str, a: Acceleration):
+    def SetAcceleration(self, axis: str, a: Acceleration):
         self.a[axis] = a
-        self.f[axis] = self.a[axis] * self.mass  # = bukan +=
         
-    def NewForce(self, axis: str, f: Force):
-        self.f[axis] = f
-        self.a[axis] = Acceleration(f.nilai / self.mass.nilai)  # F = ma → a = F/m
-
+    def ApplyForce(self, label: str, axis: str, f: Force):
+        # 1. Initialize the label with an empty dictionary ONLY if it doesn't exist yet
+        if label not in self.f:
+            self.f[label] = {}
+            
+        # 2. Add or update the specific axis safely
+        self.f[label][axis] = f
+        
+        print(f"applying {f} {axis} to {label}")
+                
     def GravitationForce(self, targetObject: Objects):
-        forces = gravityForce(self, targetObject)
-
-        for axis in self.f:
-            self.NewForce(axis, forces[axis])
+        force = gravityForce(self, targetObject)
+        
+        self.ApplyForce(targetObject.name + "'s gravitation", "x", force["x"])
+        self.ApplyForce(targetObject.name + "'s gravitation", "y", force["y"])
 
     def speed(self) -> float:
         return math.hypot(self.v["x"].nilai, self.v["y"].nilai)
 
-            
-    
+    def get_net_force(self):
+        net_force = {"x": Force(0), "y": Force(0)}
+        
+        for label, force_axes in self.f.items():
+            net_force["x"] += force_axes["x"]
+            net_force["y"] += force_axes["y"]
+                
+        return net_force
+
+
         
         

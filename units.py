@@ -1,6 +1,3 @@
-PIXELS_PER_METER = 10**-6
-
-
 class Unit:
     def __init__(self, nilai):
         self.nilai = float(nilai)
@@ -21,8 +18,11 @@ class Unit:
 
 
 class Meter(Unit):
+    def __init__(self, nilai):
+        super().__init__(nilai)
+    
     def __str__(self): return f"{self.nilai} m"
-    def to_px(self): return int(self.nilai * PIXELS_PER_METER)
+    def to_px(self, pixels_per_meter: float = 1): return int(self.nilai * pixels_per_meter)
 
 
 class Velocity(Unit):

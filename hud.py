@@ -81,11 +81,14 @@ class HUD:
     TTL_CLR = (200, 215, 255)
 
     # (label singkat, unit, getter x, getter y)
+    
+
+
     ROWS = [
         ("pos", "m",    lambda o: o.coor["x"].nilai, lambda o: o.coor["y"].nilai),
         ("vel", "m/s",  lambda o: o.v["x"].nilai,    lambda o: o.v["y"].nilai),
         ("acc", "m/s²", lambda o: o.a["x"].nilai,    lambda o: o.a["y"].nilai),
-        ("F",   "N",    lambda o: o.f["x"].nilai,     lambda o: o.f["y"].nilai),
+        ("F",   "N",    lambda o: o.get_net_force()["x"].nilai,     lambda o: o.get_net_force()["y"].nilai),
 
     ]
 
@@ -98,10 +101,8 @@ class HUD:
     def _kinetic_energy(self, o):
         return o.ke
 
-    def __init__(self, screen: pygame.Surface, obj,
-                 label: str = "Object", x: int = 10, y: int = 10,
-                 dt: float = 0.0, time_scale: float = 1.0):
-        self.screen = screen
+    def __init__(self, obj,
+                 label: str = "Object", x: int = 10, y: int = 10, time_scale: float = 1.0):
         self.obj    = obj
         self.label  = label
         self.x      = x
@@ -116,7 +117,7 @@ class HUD:
     # ── tinggi total panel ──────────────────────────────────────────────────
     @property
     def _height(self):
-        return self.HDR + self.PAD + (len(self.ROWS) + 10) * self.ROW + self.PAD
+        return self.HDR + self.PAD + (len(self.ROWS) + 5) * self.ROW + self.PAD
 
     def _header_rect(self) -> pygame.Rect:
         return pygame.Rect(self.x, self.y, self.W, self.HDR)
@@ -135,12 +136,12 @@ class HUD:
             self.y = event.pos[1] - self._oy
 
     # ── gambar ──────────────────────────────────────────────────────────────
-    def draw(self):
+    def draw(self, screen: pygame.Surface):
         font_s, font_b = _get_fonts()
         o = self.obj
         h = self._height
 
-        # update simulation time based on real elapsed time
+        # update simulation time based on real elapsed `time
         now = pygame.time.get_ticks() / 1000.0
         real_dt = now - self._last_real_time
         self._last_real_time = now
@@ -203,4 +204,4 @@ class HUD:
         surf.blit(lm, (self.PAD, oy))
         surf.blit(vm, (self.PAD + lm.get_width(), oy))
 
-        self.screen.blit(surf, (self.x, self.y))
+        screen.blit(surf, (self.x, self.y))
