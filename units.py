@@ -22,7 +22,7 @@ class Meter(Unit):
         super().__init__(nilai)
     
     def __str__(self): return f"{self.nilai} m"
-    def to_px(self, pixels_per_meter: float = 1): return int(self.nilai * pixels_per_meter)
+    def to_px(self, pixels_per_meter: float = 1): return self.nilai * pixels_per_meter
 
 
 class Velocity(Unit):
@@ -61,8 +61,8 @@ class Charge(Unit):
         super().__init__(nilai)
         self.unit = "e"
     def __str__(self): return f"{self.nilai} {self.unit}"
-    def toCoulombs(self): 
-        self.nilai *= 1.602176634e-19
-        self.unit = "C"
-        return self
+    def toCoulombs(self):
+        result = Charge(self.nilai * 1.602176634e-19)
+        result.unit = "C"
+        return result
     
