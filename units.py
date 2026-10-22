@@ -55,4 +55,14 @@ class Energy(Unit):
     def __init__(self, nilai):
         super().__init__(nilai)
     def __str__(self): return f"{self.nilai} J"
+
+class Charge(Unit):
+    def __init__(self, nilai):
+        super().__init__(nilai)
+        self.unit = "e"
+    def __str__(self): return f"{self.nilai} {self.unit}"
+    def toCoulombs(self): 
+        self.nilai *= 1.602176634e-19
+        self.unit = "C"
+        return self
     

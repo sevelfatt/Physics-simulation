@@ -1,3 +1,4 @@
+from system import ElectromagneticSystem
 from ast import List
 from hud import HUD
 from objects import Objects
@@ -8,7 +9,7 @@ import pygame
 from units import Meter, Velocity, Acceleration, Second
 
 class Simulator:
-    def __init__(self, time_scale: float, objects: List[Objects], width_px: int = 1000, height_px: int = 1000, physics_dt: float = 1, background_color: tuple = (30, 30, 30), colors: dict = {"earth": (33, 150, 243), "moon": (180, 180, 180)}, bounce: bool = True, gravity: bool = True, pixels_per_meter: float = 1):
+    def __init__(self, time_scale: float, objects: List[Objects], width_px: int = 1000, height_px: int = 1000, physics_dt: float = 1, background_color: tuple = (30, 30, 30), colors: dict = {"earth": (33, 150, 243), "moon": (180, 180, 180)}, bounce: bool = True, gravity: bool = True, electromagnetic: bool = True, pixels_per_meter: float = 1):
         self.time_scale = time_scale
         self.objects = objects
         self.time = 0
@@ -18,6 +19,7 @@ class Simulator:
         self.background_color = background_color
         self.bounce = bounce
         self.gravity = gravity
+        self.electromagnetic = electromagnetic
         self.pixels_per_meter = pixels_per_meter
         self.huds = []
         o = 1
@@ -57,6 +59,8 @@ class Simulator:
             while sim_time >= self.physics_dt:
                 if self.gravity:
                     GravitationSystem(self.objects)
+                if self.electromagnetic:
+                    ElectromagneticSystem(self.objects)
                 for obj in self.objects:
                     obj.Update(self.physics_dt)
                     if self.bounce:
@@ -69,7 +73,7 @@ class Simulator:
                 oy = (self.height_px/2) - obj.coor['y'].to_px(self.pixels_per_meter)
                 r = obj.radius.to_px(self.pixels_per_meter)
 
-                pygame.draw.circle(screen, obj.color, (int(ox), int(oy)), max(1, int(r)))
+                pygame.draw.circle(screen, obj.color, (float(ox), float(oy)), max(1, int(r)))
             for hud in self.huds:
                 hud.draw(screen)
             pygame.display.flip()

@@ -18,6 +18,10 @@ def _get_fonts():
 def fmt(val: float) -> str:
     """Format angka pendek: 1234 -> 1.23K, 0.0012 -> 1.23m, dll."""
     abs_val = abs(val)
+    if abs_val >= 1e18:
+        return f"{val/1e18:.2f}E"
+    if abs_val >= 1e15:
+        return f"{val/1e15:.2f}P"
     if abs_val >= 1e12:
         return f"{val/1e12:.2f}T"
     if abs_val >= 1e9:

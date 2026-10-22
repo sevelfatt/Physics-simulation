@@ -1,3 +1,5 @@
+from units import Charge
+from formula import electrostaticForce
 from ast import Tuple
 from units import Energy
 from formula import gravityForce
@@ -9,11 +11,13 @@ from units import Meter, Velocity, Acceleration, Second
 
 
 class Objects:
-    def __init__(self, name: str, coor: dict, radius: Meter, mass: Mass, color: Tuple=(0,0,0)):
+    def __init__(self, name: str, coor: dict, radius: Meter, mass: Mass, charge: Charge, color: Tuple=(0,0,0)):
         self.color=color
         self.coor = coor
         self.radius = radius
         self.mass = mass
+        self.charge = charge
+
         # Instance variable — setiap objek punya state sendiri
         self.a = dict(x=Acceleration(0), y=Acceleration(0))
         self.v = dict(x=Velocity(0), y=Velocity(0))
@@ -73,6 +77,12 @@ class Objects:
         
         self.ApplyForce(targetObject.name + "'s gravitation", "x", force["x"])
         self.ApplyForce(targetObject.name + "'s gravitation", "y", force["y"])
+
+    def ElectrostaticForce(self, targetObject: Objects):
+        force = electrostaticForce(self, targetObject)
+        
+        self.ApplyForce(targetObject.name + "'s electrostatic", "x", force["x"])
+        self.ApplyForce(targetObject.name + "'s electrostatic", "y", force["y"])
 
     def speed(self) -> float:
         return math.hypot(self.v["x"].nilai, self.v["y"].nilai)

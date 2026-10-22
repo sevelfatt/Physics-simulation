@@ -6,4 +6,10 @@ def GravitationSystem(objects: List[Objects]):
             if i == j:
                 continue
             objects[i].GravitationForce(objects[j])
-    
+
+def ElectromagneticSystem(objects: List[Objects]):
+    for i in range(len(objects)):
+        for j in range(len(objects)):
+            if i == j:
+                continue
+            objects[i].ElectrostaticForce(objects[j])
